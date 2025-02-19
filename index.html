@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validação de lotes</title>
+    <style>
+        /* Reset de margens e paddings */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Estilo geral da página com imagem de fundo */
+        body {
+            font-family: Arial, sans-serif;
+            background-image: url("imagens/Como-expandir-loja-de-armarinhos.jpeg");
+            background-size: cover;
+            background-position: center center;
+            background-attachment: fixed;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        /* Container principal do formulário */
+        .container {
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            width: 100%;
+            max-width: 500px;
+            text-align: center;
+        }
+
+        /* Título da página */
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        /* Estilo para os campos de entrada */
+        input[type="text"] {
+            width: 80%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        /* Estilo do botão */
+        button {
+            width: 85%;
+            padding: 10px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        /* Estilo do botão ao passar o mouse */
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Estilo do resultado */
+        h2 {
+            margin-top: 20px;
+            font-size: 18px;
+            color: #333;
+            font-weight: normal;
+        }
+
+        /* Estilo para mensagens de sucesso ou erro */
+        .resultado-aprovado {
+            color: green;
+        }
+
+        .resultado-reprovado {
+            color: red;
+        }
+
+        /* Estilos para o formulário */
+        form {
+            margin-top: 20px;
+        }
+
+        /* Espaçamento entre o campo de material e lote */
+        label {
+            display: block;
+            margin-top: 10px;
+            font-size: 16px;
+            color: #555;
+        }
+
+        /* Estilo do botão para solicitar validação */
+        #solicitar-validacao {
+            background-color: #28a745;
+        }
+
+        #solicitar-validacao:hover {
+            background-color: #218838;
+        }
+
+        #solicitar-validacao {
+            display: none;
+        }
+
+    </style>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script>
+        // Inicialize o EmailJS com sua chave de usuário
+        emailjs.init("lucascorrente");
+
+        function validarLote() {
+            // Obtém os valores de material e lote inseridos pelo usuário
+            const materialInput = document.getElementById("material").value;
+            const loteInput = document.getElementById("lote").value;
+
+            // Dados simulados da planilha (exemplo)
+            const dadosPlanilha = [
+                { material: "1569120-C3990", lote: "20619233", aprovado: "Não" },
+                { material: "B456", lote: "L002", aprovado: "Não" },
+                { material: "C789", lote: "L003", aprovado: "Sim" },
+                { material: "A123", lote: "L004", aprovado: "Não" },
+                // Aqui você pode adicionar mais dados conforme necessário
+            ];
+
+            // Variável para armazenar o status da pesquisa
+            let resultado = "Lote não encontrado ou não aprovado";
+            let resultadoClass = "resultado-reprovado"; // Classe para estilização do resultado
+
+            // Percorre os dados da planilha e valida
+            for (let i = 0; i < dadosPlanilha.length; i++) {
+                if (dadosPlanilha[i].material === materialInput && dadosPlanilha[i].lote === loteInput) {
+                    resultado = dadosPlanilha[i].aprovado === "Sim" ? "Lote aprovado" : "Lote não aprovado";
+                    resultadoClass = dadosPlanilha[i].aprovado === "Sim" ? "resultado-aprovado" : "resultado-reprovado";
+                    break;
+                }
+            }
+
+            // Exibe o resultado
+            const resultadoElement = document.getElementById("resultado");
+            resultadoElement.innerText = resultado;
+            resultadoElement.className = resultadoClass;
+
+            // Se o lote não for encontrado ou não aprovado, mostra o botão de solicitação
+            if (resultadoClass === "resultado-reprovado") {
+                document.getElementById("solicitar-validacao").style.display = "inline-block";
+            } else {
+                document.getElementById("solicitar-validacao").style.display = "none";
+            }
+        }
+
+        // Função para enviar um email para a qualidade
+        function enviarEmailSolicitacao() {
+            const material = document.getElementById("material").value;
+            const lote = document.getElementById("lote").value;
+
+            const templateParams = {
+                material: material,
+                lote: lote,
+                mensagem: "Lote não encontrado ou não aprovado. Solicito validação do lote pela equipe de qualidade."
+            };
+
+            emailjs.send("lucascorrente", "lucascorrentetemplate", templateParams, "PZOI7G2zfAn1ZOieg")
+                .then(function(response) {
+                    console.log('Email enviado com sucesso:', response);
+                    alert("Email de solicitação enviado com sucesso!");
+                }, function(error) {
+                    console.error('Erro ao enviar email:', error);
+                    alert("Houve um erro ao enviar o email.");
+                });
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Validação de Lote e Material</h1>
+        <form onsubmit="event.preventDefault(); validarLote();">
+            <label for="material">Material:</label>
+            <input type="text" id="material" required>
+            <br><br>
+
+            <label for="lote">Lote:</label>
+            <input type="text" id="lote" required>
+            <br><br>
+
+            <button type="submit">Validar</button>
+        </form>
+
+        <h2 id="resultado"></h2>
+
+        <!-- Botão para solicitar validação -->
+        <button id="solicitar-validacao" onclick="enviarEmailSolicitacao()">Solicitar Validação do Lote</button>
+    </div>
+</body>
+</html>
